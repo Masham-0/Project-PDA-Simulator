@@ -156,6 +156,10 @@ body {
   color: #fff;
 }
 
+.social-links a {
+  padding-left: 1rem;
+}
+
 /* Main Content */
 .main-content {
   margin-left: 260px;
