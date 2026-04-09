@@ -717,7 +717,7 @@ footer {
 /* Toggle Group */
 .toggle-group {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-evenly;
 
   gap: 1.5rem;
   padding: 0.5rem 0;
