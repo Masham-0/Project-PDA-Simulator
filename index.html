@@ -13,6 +13,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
   </head>
   <body>
     <nav class="sidebar glass-card">
@@ -23,6 +24,11 @@
         <li>
           <a href="#home" class="nav-item active"
             ><i class="fas fa-home"></i> <span>Home</span></a
+          >
+        </li>
+        <li>
+          <a href="#rules" class="nav-item"
+            ><i class="fas fa-book"></i> <span>Rules</span></a
           >
         </li>
         <li>
@@ -54,21 +60,47 @@
             <p><strong>Developed by:</strong> Mohammad Masham</p>
             <p><strong>Roll Number:</strong> 2024UCM2376</p>
           </div>
-          <p class="academic-desc">
-            A <strong>Pushdown Automaton (PDA)</strong> is a computational model
-            that extends the capabilities of a finite automaton by incorporating
-            a stack memory. This infinite stack allows the PDA to recognize
-            context-free languages, meaning it can "remember" an arbitrary
-            amount of information. It is foundational in computer science for
-            evaluating balanced parentheses, palindrome-like structures, and
-            powering syntax parsing algorithms in modern compilers.
-          </p>
         </div>
       </header>
 
+      <section id="rules" class="section rules-section">
+        <div class="rules-container glass-card fade-in">
+          <h2><i class="fas fa-info-circle"></i> Input & Transition Rules</h2>
+          <div class="rules-grid">
+            <div class="rule-box">
+              <h3>Input String</h3>
+              <p>
+                Enter symbols without spaces (e.g., <code>aabb</code>). Use
+                <code>e</code> for an empty string input.
+              </p>
+            </div>
+            <div class="rule-box">
+              <h3>Transitions</h3>
+              <p>
+                Format:
+                <code
+                  >CurrentState, Input, StackTop -> NextState, PushString</code
+                >
+              </p>
+              <ul>
+                <li><strong>e:</strong> Represents Epsilon (empty move).</li>
+                <li>
+                  <strong>PushString:</strong> Characters to push onto the
+                  stack.
+                </li>
+                <li>
+                  <strong>e (in PushString):</strong> Pops the stack without
+                  adding new symbols.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <main id="simulator" class="simulator-container section">
         <section class="panel input-panel glass-card fade-in">
-          <h2><i class="fas fa-sliders-h"></i> PDA Configuration</h2>
+          <h2><i class="fas fa-sliders-h"></i> Configuration</h2>
 
           <div class="form-group">
             <label>States (comma separated):</label>
@@ -87,18 +119,25 @@
           </div>
 
           <div class="form-group">
-            <label
-              >Transition Rules (State, Input, StackTop -> NextState,
-              PushString):</label
-            >
-            <p class="hint">
-              Use 'e' for Epsilon (ε). PushString replaces StackTop. Example:
-              <code>q0, a, Z -> q0, aZ</code>
-            </p>
+            <label>Stack Initialization Mode:</label>
+            <div class="toggle-group">
+              <label class="radio-label">
+                <input type="radio" name="stack-init" value="Z" checked /> Start
+                with 'Z'
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="stack-init" value="empty" /> Empty
+                Stack
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Transition Rules:</label>
             <textarea
               id="transitions"
-              rows="6"
-              placeholder="q0, a, Z -> q0, aZ&#10;q0, b, a -> q1, e..."
+              rows="5"
+              placeholder="q0, a, Z -> q0, aZ"
             ></textarea>
           </div>
 
@@ -108,14 +147,20 @@
           </div>
 
           <div class="controls">
-            <button id="btn-load" class="btn btn-secondary">
-              <i class="fas fa-file-download"></i> Load Sample
+            <button id="btn-load-1" class="btn btn-secondary">
+              Sample: aⁿbⁿ
+            </button>
+            <button id="btn-load-2" class="btn btn-secondary">
+              Sample: aⁿbᵐ
             </button>
             <button id="btn-simulate" class="btn btn-primary">
-              <i class="fas fa-play"></i> Simulate
+              <i class="fas fa-play"></i> Run
             </button>
             <button id="btn-step" class="btn btn-primary">
               <i class="fas fa-step-forward"></i> Step
+            </button>
+            <button id="btn-step-back" class="btn btn-primary" disabled>
+              <i class="fas fa-step-backward"></i> Back
             </button>
             <button id="btn-reset" class="btn btn-danger">
               <i class="fas fa-redo"></i> Reset
@@ -124,104 +169,93 @@
         </section>
 
         <section class="panel output-panel glass-card fade-in">
-          <h2><i class="fas fa-desktop"></i> Execution Trace</h2>
+          <h2><i class="fas fa-desktop"></i> Visualization</h2>
+
+          <div id="pda-graph" class="graph-container"></div>
 
           <div class="status-dashboard">
             <div class="status-box">
-              <span>Current State</span>
-              <strong id="disp-state">-</strong>
+              <span>State</span><strong id="disp-state">-</strong>
             </div>
             <div class="status-box">
-              <span>Input Left</span>
-              <strong id="disp-input">-</strong>
+              <span>Input</span><strong id="disp-input">-</strong>
             </div>
             <div class="status-box">
-              <span>Result</span>
-              <strong id="disp-result" class="neutral">Waiting...</strong>
+              <span>Result</span
+              ><strong id="disp-result" class="neutral">Waiting...</strong>
             </div>
           </div>
 
           <div class="visual-area">
             <div class="stack-container">
-              <h3>Stack Memory</h3>
+              <h3>Stack</h3>
               <div class="stack-wrapper">
                 <div id="stack-visual" class="stack"></div>
-                <div class="stack-base"></div>
               </div>
             </div>
-
             <div class="log-container">
-              <h3>Transition Trace</h3>
-              <ul id="trace-log" class="trace-log">
-                <li>Initialize PDA to begin trace.</li>
-              </ul>
+              <h3>Trace</h3>
+              <ul id="trace-log" class="trace-log"></ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="use-cases" class="use-cases fade-in section">
+          <h2>Real-World Use Cases of PDA</h2>
+          <div class="cards-grid">
+            <div class="use-case-card glass-card">
+              <i class="fas fa-code"></i>
+              <h3>Compiler Syntax Parsing</h3>
+              <p>
+                PDAs form the backbone of parsing phases in modern compilers,
+                ensuring source code follows correct grammatical structures.
+              </p>
+            </div>
+            <div class="use-case-card glass-card">
+              <i class="fas fa-calculator"></i>
+              <h3>Expression Validation</h3>
+              <p>
+                Evaluating mathematical expressions to guarantee the correct
+                order of operations and accurate nested bracket formatting.
+              </p>
+            </div>
+            <div class="use-case-card glass-card">
+              <i class="fas fa-brackets-curly"></i>
+              <h3>Balanced Symbols</h3>
+              <p>
+                Crucial in text editors and IDEs to highlight missing or
+                mismatched parentheses, brackets, and braces in real-time.
+              </p>
+            </div>
+            <div class="use-case-card glass-card">
+              <i class="fas fa-file-code"></i>
+              <h3>XML/HTML Validation</h3>
+              <p>
+                Used by browsers and validators to ensure every opening tag in
+                markup languages has a corresponding closing tag.
+              </p>
+            </div>
+            <div class="use-case-card glass-card">
+              <i class="fas fa-language"></i>
+              <h3>Language Processing</h3>
+              <p>
+                Applied in Natural Language Processing (NLP) to map grammatical
+                structures and parse context-free syntaxes in human languages.
+              </p>
             </div>
           </div>
         </section>
       </main>
 
-      <section id="use-cases" class="use-cases fade-in section">
-        <h2>Real-World Use Cases of PDA</h2>
-        <div class="cards-grid">
-          <div class="use-case-card glass-card">
-            <i class="fas fa-code"></i>
-            <h3>Compiler Syntax Parsing</h3>
-            <p>
-              PDAs form the backbone of parsing phases in modern compilers,
-              ensuring source code follows correct grammatical structures.
-            </p>
-          </div>
-          <div class="use-case-card glass-card">
-            <i class="fas fa-calculator"></i>
-            <h3>Expression Validation</h3>
-            <p>
-              Evaluating mathematical expressions to guarantee the correct order
-              of operations and accurate nested bracket formatting.
-            </p>
-          </div>
-          <div class="use-case-card glass-card">
-            <i class="fas fa-brackets-curly"></i>
-            <h3>Balanced Symbols</h3>
-            <p>
-              Crucial in text editors and IDEs to highlight missing or
-              mismatched parentheses, brackets, and braces in real-time.
-            </p>
-          </div>
-          <div class="use-case-card glass-card">
-            <i class="fas fa-file-code"></i>
-            <h3>XML/HTML Validation</h3>
-            <p>
-              Used by browsers and validators to ensure every opening tag in
-              markup languages has a corresponding closing tag.
-            </p>
-          </div>
-          <div class="use-case-card glass-card">
-            <i class="fas fa-language"></i>
-            <h3>Language Processing</h3>
-            <p>
-              Applied in Natural Language Processing (NLP) to map grammatical
-              structures and parse context-free syntaxes in human languages.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <footer>
+      <footer class="section">
         <div class="footer-content glass-card">
-          <p>&copy; 2026 Project PDA Simulator | CMCSC401 Subject Submission</p>
-          <p>Developed by <strong>Mohammad Masham</strong> (2024UCM2376)</p>
-          <div class="social-links">
-            <a href="https://github.com/Masham-0/Project-PDA-Simulator"
-              ><i class="fab fa-github"></i> GitHub Repository</a
-            >
-            <a href="mailto:mohd.masham@gmail.com"
-              ><i class="fas fa-envelope"></i>mohd.masham@gmail.com</a
-            >
-          </div>
+          <p>
+            &copy; 2026 Project PDA Simulator | Developed by
+            <strong>Mohammad Masham</strong>
+          </p>
         </div>
       </footer>
     </div>
-
     <script src="script.js"></script>
   </body>
 </html>
