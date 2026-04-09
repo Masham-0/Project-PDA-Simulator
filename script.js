@@ -451,5 +451,13 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("scroll", updateActiveNav);
   updateActiveNav(); // Initial call
 
-  dom.btnReset.addEventListener("click", () => location.reload());
+  dom.btnReset.addEventListener("click", () => {
+    dom.states.value = "";
+    dom.start.value = "";
+    dom.accept.value = "";
+    dom.rules.value = "";
+    dom.inputStr.value = "";
+    setStackMode("Z");
+    invalidateSimulation();
+  });
 });
